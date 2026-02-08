@@ -1,6 +1,5 @@
 #ifndef FS_FILE_HPP
 #define FS_FILE_HPP
-#endif
 
 #include <filesystem>
 #include <fstream>
@@ -37,3 +36,5 @@ namespace alt {
         };
     }
 }
+
+#endif

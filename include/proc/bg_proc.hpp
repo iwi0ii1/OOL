@@ -1,6 +1,5 @@
 #ifndef PROC_BG_PROC_HPP
 #define PROC_BG_PROC_HPP
-#endif
 
 #ifdef _WIN32
 
@@ -27,3 +26,5 @@ namespace alt {
         #endif
     }
 }
+
+#endif

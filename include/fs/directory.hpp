@@ -1,6 +1,5 @@
 #ifndef FS_DIRECTORY_HPP
 #define FS_DIRECTORY_HPP
-#endif
 
 #include "./file.hpp"
 #include <string>
@@ -47,3 +46,5 @@ namespace alt {
         };
     }
 }
+
+#endif
