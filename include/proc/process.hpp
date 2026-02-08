@@ -7,3 +7,14 @@
 #elif __unix__
 
 #endif
+
+
+namespace alt {
+    namespace proc {
+
+        // A wrapper around a process
+        class process final {
+            // TODO: Fill it up
+        };
+    }
+}

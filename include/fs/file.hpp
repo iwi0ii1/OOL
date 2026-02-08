@@ -3,6 +3,7 @@
 #endif
 
 #include <filesystem>
+#include <fstream>
 #include <string>
 #include <string_view>
 
@@ -15,16 +16,24 @@ namespace alt {
         class file final {
         private:
             std::string name_;
-            size_t byte_size_; // By byte (not KB)
-            mode_t permission_; // By octal
+            std::uintmax_t byte_size_;
+            sfs::perms permission_;
             sfs::file_time_type lwt_; // Last write time
 
         public:
-            // Wraps around a file (create if not present)
+            // Wraps around a file (create if not present or is a directory)
             explicit file(const std::string_view name) noexcept : name_(name) {
-                sfs::
+                const sfs::path p(name);
+                if (!sfs::exists(p) || !sfs::is_regular_file(p))
+                    std::ifstream that_file(p);
+
+                byte_size_ = sfs::file_size(p);
+                permission_ = sfs::status(p).permissions();
+                lwt_ = sfs::last_write_time(p);
             }
 
+
+            // TODO: Implement methods for manipulation
         };
     }
 }
