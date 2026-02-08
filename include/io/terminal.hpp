@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
+#include <cstdint>
 
 #ifdef __unix__
 #include <unistd.h>
@@ -143,6 +144,7 @@ namespace alt {
             terminal& endline(const stream_ stream = out) {
                 terminal::write("\n", stream);
                 terminal::flush(stream);
+                return *this;
             }
 
             #pragma endregion
@@ -298,7 +300,7 @@ namespace alt {
 
             // Enable local terminal modes
             // @param mode Use `operator|` to enable more modes
-            terminal& enable_modes(const modes_ mode) noexcept {
+            terminal& enable_modes(const unsigned int mode) noexcept {
                 #ifdef __unix__
                 modified_.c_lflag |= mode;
                 tcsetattr(STDIN_FILENO, TCSANOW, &modified_);
@@ -312,7 +314,7 @@ namespace alt {
 
             // Disable local terminal modes
             // @param modes Use `operator|` to disable more modes
-            terminal& disable_modes(const modes_ mode) noexcept {
+            terminal& disable_modes(const unsigned int mode) noexcept {
                 #ifdef __unix__
                 modified_.c_lflag &= ~mode;
                 tcsetattr(STDIN_FILENO, TCSANOW, &modified_);
