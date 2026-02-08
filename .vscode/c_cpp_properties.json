@@ -1,0 +1,41 @@
+{
+    "configurations": [
+        {
+            "name": "C",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu23",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/include",
+                "/usr/local/include"
+            ],
+            "defines": [
+                "__linux__"
+            ]
+        },
+        {
+            "name": "C++",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerPath": "/usr/bin/g++",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/include",
+                "/usr/local/include"
+            ],
+            "defines": [
+                "__linux__"
+            ],
+            "cStandard": "gnu23",
+            "cppStandard": "gnu++23",
+            "browse": {
+                "path": [
+                    "/usr/include",
+                    "/usr/local/include",
+                    "/usr/local/lib"
+                ]
+            }
+        }
+    ],
+    "version": 4
+}
