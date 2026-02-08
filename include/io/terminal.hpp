@@ -7,10 +7,15 @@
 #include <cstdint>
 
 #ifdef __unix__
+
 #include <unistd.h>
 #include <termios.h>
+#include <sys/ioctl.h>
+
 #elif _WIN32
+
 #include <windows.h>
+
 #endif
 
 namespace alt {
@@ -69,10 +74,12 @@ namespace alt {
         // A wrapper around a terminal
         class terminal final {
         private:
+            // Streams
             FILE* _in;
             FILE* _out;
             FILE* _err;
 
+            // Terminal modes
             #ifdef __unix__
             termios original_;
             termios modified_;
@@ -82,6 +89,8 @@ namespace alt {
             DWORD hOriginal_;
             DWORD hModified_;
             #endif
+
+            // 
         
         public:
 
@@ -113,6 +122,9 @@ namespace alt {
             #pragma endregion
 
 
+            FILE* fd(const stream_ stream) noexcept {
+                return stream == in ? _in : stream == out ? _out : _err;
+            }
 
 
 
@@ -215,7 +227,7 @@ namespace alt {
 
             // Clear the terminal (including scrollback buffer)
             terminal& clear() noexcept {
-                terminal::write("\x1b[3J\x1b[2J\x1b[H");
+                std::cout << "\x1b[3J\x1b[2J\x1b[H" << std::flush;
                 return *this;
             }
 
@@ -253,6 +265,12 @@ namespace alt {
             // @param rep Repetition (default: 1)
             terminal& cursor_right(const uint16_t rep = 1) noexcept {
                 std::cout << "\x1b[" << rep << "C" << std::flush;
+                return *this;
+            }
+
+            // Move cursor to a specific position
+            terminal& cursor_pos(const uint16_t row, const uint16_t col) noexcept {
+                std::cout << "\x1b[" << row << ";" << col << "H" << std::flush;
                 return *this;
             }
 
@@ -338,6 +356,68 @@ namespace alt {
             }
 
             #pragma endregion
+
+
+
+
+
+            #pragma region Winsize
+
+            // Get the window size of a terminal
+            // @note `.first`: no. of cols
+            // @note `.second`: no. of rows
+            std::pair<uint8_t, uint8_t> get_winsize() const {
+                #ifdef __unix__
+                winsize w;
+                if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w))
+                    throw std::runtime_error("alt::io::terminal::get_winsize(): ioctl failed");
+                
+                return { w.ws_col, w.ws_row };
+                #elif _WIN32
+                CONSOLE_SCREEN_BUFFER_INFO csbi;
+                if (!GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi))
+                    throw std::runtime_error("alt::io::terminal::get_winsize(): GetConsoleScreenBufferInfo failed");
+
+                int cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+                int rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+                return { cols, rows };
+                #endif
+            }
+
+            // Set terminal buffer size
+            // @param cols Number of columns
+            // @param rows Number of rows
+            terminal& set_buffer_size(const uint8_t cols, const uint8_t rows) {
+                #ifdef __unix__
+                winsize w;
+                w.ws_col = cols;
+                w.ws_row = rows;
+
+                if (ioctl(STDOUT_FILENO, TIOCSWINSZ, &w) == -1)
+                    throw std::runtime_error("alt::io::terminal::set_winsize(): ioctl failed");
+
+                #elif _WIN32
+                HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+
+                COORD size;
+                size.X = cols;
+                size.Y = rows;
+                if (SetConsoleScreenBufferSize(hOut, size))
+                    throw std::runtime_error("alt::io::terminal::set_winsize(): SetConsoleScreenBufferSize failed");
+
+                #endif
+                
+                return *this;
+            }
+
+            #ifdef _WIN32
+            // Set window size. Literally the frame...
+            // @param cols Number of columns
+            // @param rows Number of rows
+            terminal& set_window_size(const uint8_t cols, const uint8_t rows) {
+                // TODO: set frame size, bruh
+            }
+            #endif
         };
     }
 }
