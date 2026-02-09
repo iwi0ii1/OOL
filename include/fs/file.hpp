@@ -22,8 +22,11 @@ inline namespace ool {
             sfs::file_time_type lwt_; // Last write time
 
         public:
+
+            #pragma region Setup
+
             // Wraps around a file (create if not present or is a directory)
-            explicit file(const std::string_view name) : name_(name) {
+            explicit file(const sfs::path name) : name_(name) {
                 const sfs::path p(name);
                 if (!sfs::exists(p) || !sfs::is_regular_file(p)) {
                     std::ifstream that_file(p.string());
@@ -35,8 +38,19 @@ inline namespace ool {
                 lwt_ = sfs::last_write_time(p);
             }
 
+            // Default ctor
+            file() = default;
+
             // Just destructor, lol
             ~file() = default;
+
+
+            bool operator==(const file& b) const noexcept {
+                return this->path() == b.path();
+            }
+
+            
+            #pragma endregion
             
 
 

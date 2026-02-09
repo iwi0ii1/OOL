@@ -6,6 +6,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <algorithm>
 #include <fstream>
 #include <filesystem>
 
@@ -21,10 +22,12 @@ inline namespace ool {
             sfs::perms permission_;
             sfs::file_time_type lwt_; // Last write time
 
-            std::vector<file> files_list_;
-            std::vector<directory> directories_list_;
+            std::vector<sfs::path> children_;
 
         public:
+
+            #pragma region Setups
+
             // Wraps around a directory (create if not present or is a regular file)
             explicit directory(const sfs::path name) noexcept : name_(name), byte_size_(0) {
                 const sfs::path& p = name;
@@ -36,22 +39,27 @@ inline namespace ool {
                     // Sum size
                     if (sfs::is_regular_file(entry.path()))
                         byte_size_ += sfs::file_size(entry.path());
-
-                    // Setup directories list
-                    if (sfs::is_directory(entry.path()))
-                        directories_list_.emplace_back(entry.path());
-
-                    // Setup files list
-                    if (sfs::is_regular_file(entry.path()))
-                        files_list_.emplace_back(entry.path());
+                        
+                    children_.push_back(entry.path());
                 }
 
                 permission_ = sfs::status(p).permissions();
                 lwt_ = sfs::last_write_time(p);
             }
 
+            // Default ctor
+            directory() = default;
+
             // Just destructor, lol
             ~directory() = default;
+
+
+            bool operator==(const directory& b) const noexcept {
+                return this->path() == b.path();
+            }
+
+
+            #pragma endregion
 
 
 
@@ -84,21 +92,9 @@ inline namespace ool {
                 return lwt_;
             }
 
-            #pragma endregion
-
-
-
-
-            #pragma region Children
-
-            // List children files
-            const std::vector<file>& list_files() const noexcept {
-                return files_list_;
-            }
-
-            // List children directories
-            const std::vector<directory>& list_directories() const noexcept {
-                return directories_list_;
+            // Children
+            const auto& list() const noexcept {
+                return children_;
             }
 
             #pragma endregion
@@ -109,43 +105,45 @@ inline namespace ool {
             #pragma region Modifier
 
             // Create new file
-            directory& new_file(const sfs::path file_path) {
-                files_list_.emplace_back(file_path);
+            directory& new_file(const sfs::path& file_path) {
+                if (sfs::exists(file_path))
+                    throw std::runtime_error("ool::fs::directory::new_file(): Given path already existed.");
+
+                std::ofstream newer(file_path.string());
+                if (!newer.is_open())
+                    throw std::runtime_error("ool::fs::directory::new_file(): Failed to create file.");
+                
+                children_.emplace_back(file_path);
                 return *this;
             }
 
             // Create a new directory
-            directory& new_directory(const sfs::path dir_path) {
-                directories_list_.emplace_back(dir_path);
+            directory& new_directory(const sfs::path& dir_path) {
+                if (sfs::exists(dir_path))
+                    throw std::runtime_error("ool::fs::directory::new_directory(): Given path already existed.");
+
+                if (!sfs::create_directory(dir_path))
+                    throw std::runtime_error("ool::fs::directory::new_directory(): Failed to create directory.");
+
+                children_.emplace_back(dir_path);
                 return *this;
             }
+            
+            // Remove a file / directory
+            // @warning Destructive. Aggressive.
+            directory& remove_child(const sfs::path& path) {
+                if (!sfs::exists(path))
+                    throw std::runtime_error("ool::fs::directory::remove_child(): Given path does not exist.");
 
+                const auto it = std::find(children_.begin(), children_.end(), path);
 
+                if (it == children_.end())
+                    throw std::runtime_error("ool::fs::directory::remove_child(): Given path doesn't seem to exist in internal list (might be a bug).");
 
-            // Remove file
-            directory& remove_file(const sfs::path file_path) {
-                const auto it = std::find(files_list_.begin(), files_list_.end(), file_path);
-                if (it == files_list_.end())
-                    throw std::runtime_error("ool::fs::directory::remove_file(): File does not exist. Cannot remove.");
+                if (!sfs::remove_all(path))
+                    throw std::runtime_error("ool::fs::directory::remove_child(): Failed to remove child.");
 
-                if (!sfs::remove(it->path()))
-                    throw std::runtime_error("ool::fs::directory::remove_file(): Failed to remove file.");
-
-                files_list_.erase(it);
-                return *this;
-            }
-
-            // Remove directory (destructive, recursive)
-            directory& remove_directory(const sfs::path dir_path) {
-                const auto it = std::find(directories_list_.begin(), directories_list_.end(), dir_path);
-                if (it == directories_list_.end())
-                    throw std::runtime_error("ool::fs::directory::remove_directory(): Directory does not exist. Cannot remove.");
-
-                if (!sfs::remove_all(it->path()))
-                    throw std::runtime_error("ool::fs::directory::remove_directory(): Faile to remove directory.");
-
-                directories_list_.erase(it);
-                return *this;
+                children_.erase(it);
             }
         };
     }
