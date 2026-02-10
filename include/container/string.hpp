@@ -2,12 +2,14 @@
 #define CONTAINER_STRING_HPP
 
 #include "base_object.hpp"
+#include <type_traits>
 
 inline namespace ool {
     namespace container {
 
-        // String.
-        class string final : private object {
+        // Basic string
+        template<typename T>
+        class basic_string final : private object {
         private:
             size_t size;
 

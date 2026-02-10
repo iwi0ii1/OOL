@@ -16,26 +16,19 @@ inline namespace ool {
         // A wrapper around a file
         class file final {
         private:
-            sfs::path name_;
-            std::uintmax_t byte_size_;
-            sfs::perms permission_;
-            sfs::file_time_type lwt_; // Last write time
+            sfs::path path_;
 
         public:
 
             #pragma region Setup
 
             // Wraps around a file (create if not present or is a directory)
-            explicit file(const sfs::path name) : name_(name) {
+            explicit file(const sfs::path name) : path_(name) {
                 const sfs::path p(name);
                 if (!sfs::exists(p) || !sfs::is_regular_file(p)) {
                     std::ifstream that_file(p.string());
                     if (!that_file.is_open()) throw std::runtime_error("ool::fs::file::file(): failed to create file.");
                 }
-
-                byte_size_ = sfs::file_size(p);
-                permission_ = sfs::status(p).permissions();
-                lwt_ = sfs::last_write_time(p);
             }
 
             // Default ctor
@@ -58,27 +51,27 @@ inline namespace ool {
 
             // Base name
             sfs::path name() const noexcept {
-                return name_.filename();
+                return path_.filename();
             }
 
             // Full path
             const sfs::path& path() const noexcept {
-                return name_;
+                return path_;
             }
 
-            // The size of the directory (default unit: KB)
+            // The size of the file (default unit: KB)
             std::uintmax_t size(const memory_unit unit = KB) const noexcept {
-                return byte_size_ / unit;
+                return sfs::file_size(path_) / unit;
             }
 
-            // The permission of the directory
-            const sfs::perms& permission() const noexcept {
-                return permission_;
+            // The permission of the file
+            sfs::perms permission() const noexcept {
+                return sfs::status(path_).permissions();
             }
 
             // The last modification date
-            const sfs::file_time_type& last_modify_date() const noexcept {
-                return lwt_;
+            sfs::file_time_type last_write_time() const noexcept {
+                return sfs::last_write_time(path_);
             }
 
             #pragma endregion

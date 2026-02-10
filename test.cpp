@@ -5,7 +5,7 @@
 
 int main() {
     // Dir creation
-    fs::directory dir(fs::sfs::current_path());
+    fs::directory dir(fs::sfs::current_path()); // TOOK 0.5 MS, SLOWWWWWWW
     const auto list = dir.list();
     std::cout << "Passed" << std::endl;
     for (const auto& each : list)

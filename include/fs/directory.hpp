@@ -17,10 +17,7 @@ inline namespace ool {
         // A wrapper around a directory
         class directory final {
         private:
-            sfs::path name_;
-            std::uintmax_t byte_size_;
-            sfs::perms permission_;
-            sfs::file_time_type lwt_; // Last write time
+            sfs::path path_;
 
             std::vector<sfs::path> children_;
 
@@ -29,22 +26,17 @@ inline namespace ool {
             #pragma region Setups
 
             // Wraps around a directory (create if not present or is a regular file)
-            explicit directory(const sfs::path name) noexcept : name_(name), byte_size_(0) {
+            explicit directory(const sfs::path name) noexcept : path_(name) {
                 const sfs::path& p = name;
 
-                if (!sfs::exists(p) || !sfs::is_directory(p))
-                    sfs::create_directory(p);
-
-                for (const auto& entry : sfs::recursive_directory_iterator(p)) {
-                    // Sum size
-                    if (sfs::is_regular_file(entry.path()))
-                        byte_size_ += sfs::file_size(entry.path());
-                        
-                    children_.push_back(entry.path());
+                if (sfs::exists(p) && sfs::is_directory(p)) {
+                    // Emplace children
+                    for (const auto& entry : sfs::recursive_directory_iterator(p))
+                        children_.push_back(entry.path());
+                    
+                } else {
+                    sfs::create_directory(p); // Create directory
                 }
-
-                permission_ = sfs::status(p).permissions();
-                lwt_ = sfs::last_write_time(p);
             }
 
             // Default ctor
@@ -69,27 +61,31 @@ inline namespace ool {
 
             // Base name
             sfs::path name() const noexcept {
-                return name_.filename();
+                return path_.filename();
             }
 
             // The full path of the directory
             const sfs::path& path() const noexcept  {
-                return name_;
+                return path_;
             }
 
             // The size of the directory (default unit: KB)
             std::uintmax_t size(const memory_unit unit = KB) const noexcept {
+                std::uintmax_t byte_size_ = 0;
+                for (const auto& each : sfs::recursive_directory_iterator(path_))
+                    if (sfs::is_regular_file(each.path())) byte_size_ += each.file_size();
+
                 return byte_size_ / unit;
             }
 
             // The permission of the directory
-            const sfs::perms& permission() const noexcept {
-                return permission_;
+            sfs::perms permission() const noexcept {
+                return sfs::status(path_).permissions();
             }
 
             // The last modification date
-            const sfs::file_time_type& last_modify_date() const noexcept {
-                return lwt_;
+            sfs::file_time_type last_write_time() const noexcept {
+                return sfs::last_write_time(path_);
             }
 
             // Children
