@@ -1,6 +1,7 @@
-#ifndef RUNTIME_PROCESS_STATE_HPP
-#define RUNTIME_PROCESS_STATE_HPP
+#ifndef RT_PROCESS_STATE_HPP
+#define RT_PROCESS_STATE_HPP
 
+#include "../types/object.hpp"
 #include <string_view>
 
 #ifdef _WIN32
@@ -9,14 +10,13 @@
 #include <unistd.h>
 #endif
 
-inline namespace ool {
-    namespace runtime {
+namespace ool::rt {
 
-        // The current state of a process
-        class process_state final {
-            // TODO: Incomplete process_state
-        };
-    }
+    // The current state of a process
+    class process_state final : private types::object {
+    public:
+        // TODO: Incomplete process_state
+    };
 }
 
 #endif

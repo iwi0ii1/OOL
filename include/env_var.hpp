@@ -9,11 +9,9 @@
 #include <windows.h>
 #endif
 
-inline namespace ool {
-    // Where u manipulate environment variables
-    namespace env_var {
-        // TODO: Implement functions that manipulates `extern char** environ`
-    }
+// Where u manipulate environment variables
+namespace ool::env_var {
+    // TODO: Implement functions that manipulates `extern char** environ`
 }
 
 #endif

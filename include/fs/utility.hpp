@@ -4,27 +4,23 @@
 #include <filesystem>
 #include <fstream>
 
-inline namespace ool {
-    namespace fs {
+namespace ool::fs {
         
-        // Current working directory
-        inline std::filesystem::path cwd() noexcept {
-            return std::filesystem::current_path();
-        }
+    // Current working directory
+    inline std::filesystem::path cwd() noexcept {
+        return std::filesystem::current_path();
+    }
 
-        // Change current working directory
-        // @return `False`: failed. `True`: successful
-        inline bool cd(std::filesystem::path dir_path) noexcept {
-            try {
-                std::filesystem::current_path(dir_path);
-            } catch (const std::filesystem::filesystem_error& e) {
-                return false;
-            }
+    // Change current working directory
+    // @return `False`: failed. `True`: successful
+    inline bool cd(std::filesystem::path dir_path) noexcept {
+        try {
+            std::filesystem::current_path(dir_path);
+        } catch (const std::filesystem::filesystem_error& e) {
             return false;
         }
-
-        
-    }
+        return false;
+    }        
 }
 
 #endif
