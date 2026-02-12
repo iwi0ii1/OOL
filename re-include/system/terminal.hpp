@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../base/object.hpp"
+#include "../../base/stream.hpp"
 
 namespace ool::system {
     // Terminal
-    class terminal final : base::object {
+    class terminal final : base::stream {
     public:
         // TODO: Terminal
     };
