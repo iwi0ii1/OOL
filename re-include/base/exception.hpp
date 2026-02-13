@@ -4,7 +4,7 @@
 
 namespace ool::base {
     // Exception
-    class exception final : object {
+    class exception final : public object {
 
     };
 }

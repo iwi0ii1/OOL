@@ -8,7 +8,7 @@ namespace ool::base {
     // @note You will need to manually implement `.begin()`, `.end()`, `.rbegin()` and `.rend()`
     // @param _pointer The pointer type that iterators return.
     template<typename _pointer, typename _derived>
-    class iterator : public virtual object {
+    class iterator : public object {
     public:
         static_assert(std::is_pointer_v<_pointer>, "Iterators can only be pointers.");
         iterator() = default;
@@ -39,7 +39,7 @@ namespace ool::base {
     // @note You will need to manually implement `.cbegin()`, `.cend()`, `.crbegin()` and `crend()`
     // @param _pointer The pointer type that iterators return.
     template<typename _pointer, typename _derived>
-    class const_iterator : public virtual object {
+    class const_iterator : public object {
     public:
         static_assert(std::is_pointer_v<_pointer> && std::is_const_v<_pointer>, "Constant iterators can only be constant pointers.");
         const_iterator() = default;
