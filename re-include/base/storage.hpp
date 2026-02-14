@@ -7,7 +7,7 @@ namespace asl::base {
     // Base class for raw memory and used memory management.
     // @note Provides allocation, resizing, etc.
     class storage : public base::object {
-    public:
+    protected:
         size_t size_ = 0;
         size_t capacity_ = 0;
         void* memory_ = nullptr;
