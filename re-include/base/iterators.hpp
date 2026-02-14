@@ -4,9 +4,9 @@
 
 namespace asl::base {
     // Iterators here.
-    // @param _derived The class that enforces iterators.
-    // @note You will need to manually implement `.begin()`, `.end()`, `.rbegin()` and `.rend()`
+    // @param _derived Derived class
     // @param _pointer The pointer type that iterators return.
+    // @note Please implement `_pointer begin()`, `_pointer end()`, `_pointer rbegin()` and `_pointer rend()`
     template<typename _pointer, typename _derived>
     class iterator : public object {
     public:
@@ -36,9 +36,9 @@ namespace asl::base {
 
 
     // Constant iterators here.
-    // @param _derived The class that enforces iterators.
-    // @note You will need to manually implement `.cbegin()`, `.cend()`, `.crbegin()` and `crend()`
-    // @param _pointer The pointer type that iterators return.
+    // @param _derived Derived class
+    // @param _pointer The pointer type that const iterators return.
+    // @note Please implement `_pointer cbegin()`, `_pointer cend()`, `_pointer crbegin()` and `_pointer crend()`
     template<typename _pointer, typename _derived>
     class const_iterator : public object {
     public:

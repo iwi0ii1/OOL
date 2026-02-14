@@ -5,6 +5,7 @@
 namespace asl::system::io {
     // File stream
     class file_stream final : public base::stream {
+    public:
         // TODO: File stream
     };
 }
