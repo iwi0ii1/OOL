@@ -4,7 +4,7 @@
 #include "../types/object.hpp"
 #include <chrono>
 
-namespace ool::tm {
+namespace asl::tm {
 
     // Just real clock.
     // @note Tick-tock, tick-tock

@@ -2,9 +2,9 @@
 
 #include "../../base/object.hpp"
 
-namespace ool::system::time {
+namespace asl::system::time {
     // Sleep timer
-    class sleep_timer final : base::object {
+    class sleep_timer final : public base::object {
     public:
         // TODO: Sleep timer
     };

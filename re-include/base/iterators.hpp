@@ -2,7 +2,7 @@
 
 #include "./object.hpp"
 
-namespace ool::base {
+namespace asl::base {
     // Iterators here.
     // @param _derived The class that enforces iterators.
     // @note You will need to manually implement `.begin()`, `.end()`, `.rbegin()` and `.rend()`
@@ -10,7 +10,8 @@ namespace ool::base {
     template<typename _pointer, typename _derived>
     class iterator : public object {
     public:
-        static_assert(std::is_pointer_v<_pointer>, "Iterators can only be pointers.");
+        static_assert(std::is_pointer_v<_pointer> && !std::is_const_v<std::remove_pointer_t<_pointer>>, "_pointer must point to a const");
+        static_assert(std::is_base_of_v<iterator<_pointer, _derived>, _derived>, "_derived must be the same as derived class.");
         iterator() = default;
 
     protected:
@@ -41,7 +42,8 @@ namespace ool::base {
     template<typename _pointer, typename _derived>
     class const_iterator : public object {
     public:
-        static_assert(std::is_pointer_v<_pointer> && std::is_const_v<_pointer>, "Constant iterators can only be constant pointers.");
+        static_assert(std::is_pointer_v<_pointer> && std::is_const_v<std::remove_pointer_t<_pointer>>, "_pointer must point to a non-const");
+        static_assert(std::is_base_of_v<iterator<_pointer, _derived>, _derived>, "_derived must be the same as derived class.");
         const_iterator() = default;
 
     protected:
@@ -62,4 +64,12 @@ namespace ool::base {
             return static_cast<const _derived&>(*this).crend();
         }
     };
+
+
+    
+    // Iterator and Const iterator
+    template<typename _pointer, typename _derived>
+    class iterator_common :
+        public virtual iterator<_pointer, _derived>,
+        public virtual const_iterator<const std::remove_pointer_t<_pointer>*, _derived> {};
 }

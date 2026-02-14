@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <fstream>
 
-namespace ool::fs {
+namespace asl::fs {
         
     // Current working directory
     inline std::filesystem::path cwd() noexcept {
@@ -13,7 +13,7 @@ namespace ool::fs {
 
     // Change current working directory
     // @return `False`: failed. `True`: successful
-    inline bool cd(std::filesystem::path dir_path) noexcept {
+    inline basl cd(std::filesystem::path dir_path) noexcept {
         try {
             std::filesystem::current_path(dir_path);
         } catch (const std::filesystem::filesystem_error& e) {

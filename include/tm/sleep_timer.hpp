@@ -4,7 +4,7 @@
 #include "../types/object.hpp"
 #include <chrono> // For compatibility
 
-namespace ool::tm {
+namespace asl::tm {
 
     // CPU sleep putter, lol
     class sleep_timer final : private types::object {

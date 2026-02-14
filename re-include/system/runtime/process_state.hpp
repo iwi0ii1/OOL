@@ -2,9 +2,9 @@
 
 #include "../../base/object.hpp"
 
-namespace ool::system::runtime {
+namespace asl::system::runtime {
     // Process state
-    class process_state final : base::object {
+    class process_state final : public base::object {
     public:
         // TODO: Process state
     };

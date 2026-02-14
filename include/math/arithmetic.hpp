@@ -3,7 +3,7 @@
 
 #include "../types/object.hpp"
 
-namespace ool::math::arithmetic {
+namespace asl::math::arithmetic {
     // TODO: Arithmetic
 }
 

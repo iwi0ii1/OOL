@@ -6,7 +6,7 @@
 #include <string>
 #include <string_view>
 
-namespace ool::io {
+namespace asl::io {
 
     // A wrapper of an I/O between files
     class fileio final : private types::object {

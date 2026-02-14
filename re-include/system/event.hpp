@@ -2,9 +2,9 @@
 
 #include "../base/object.hpp"
 
-namespace ool::system {
+namespace asl::system {
     // Event
-    class event final : base::object {
+    class event final : public base::object {
     public:
         // TODO: Event
     };

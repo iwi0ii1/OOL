@@ -3,7 +3,7 @@
 
 #include "../types/object.hpp"
 
-namespace ool::math::trig {
+namespace asl::math::trig {
     // TODO: Trigonometry
 }
 

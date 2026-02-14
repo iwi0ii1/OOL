@@ -10,7 +10,7 @@
 #endif
 
 // Where u manipulate environment variables
-namespace ool::env_var {
+namespace asl::env_var {
     // TODO: Implement functions that manipulates `extern char** environ`
 }
 

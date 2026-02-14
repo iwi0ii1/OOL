@@ -2,9 +2,9 @@
 
 #include "../../base/object.hpp"
 
-namespace ool::system::runtime {
+namespace asl::system::runtime {
     // Process starter
-    class process_starter final : base::object {
+    class process_starter final : public base::object {
     public:
         // TODO: Process starter
     };

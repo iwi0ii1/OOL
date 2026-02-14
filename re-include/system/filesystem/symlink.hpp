@@ -2,9 +2,9 @@
 
 #include "../../base/object.hpp"
 
-namespace ool::system::filesystem {
+namespace asl::system::filesystem {
     // Symlink
-    class symlink final : base::object {
+    class symlink final : public base::object {
     public:
         // TODO: Symlink.
     };

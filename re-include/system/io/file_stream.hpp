@@ -2,9 +2,9 @@
 
 #include "../../base/stream.hpp"
 
-namespace ool::system::io {
+namespace asl::system::io {
     // File stream
-    class file_stream final : base::stream {
+    class file_stream final : public base::stream {
         // TODO: File stream
     };
 }

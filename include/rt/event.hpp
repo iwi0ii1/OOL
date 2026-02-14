@@ -3,7 +3,7 @@
 
 #include "../types/object.hpp"
 
-namespace ool::rt {
+namespace asl::rt {
 
     // Event maker
     class event final : private types::object {

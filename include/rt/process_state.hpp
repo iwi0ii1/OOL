@@ -10,7 +10,7 @@
 #include <unistd.h>
 #endif
 
-namespace ool::rt {
+namespace asl::rt {
 
     // The current state of a process
     class process_state final : private types::object {

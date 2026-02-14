@@ -6,7 +6,7 @@
 #include <string_view>
 #include <cstdlib>
 
-namespace ool::fs {
+namespace asl::fs {
     
     // A wrapper around a symlink
     class symlink final : private types::object {

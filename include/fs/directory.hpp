@@ -11,7 +11,7 @@
 #include <filesystem>
 
 
-namespace ool::fs {
+namespace asl::fs {
 
     // A wrapper around a directory
     class directory final : private types::object {
@@ -45,7 +45,7 @@ namespace ool::fs {
         ~directory() = default;
 
 
-        bool operator==(const directory& b) const noexcept {
+        basl operator==(const directory& b) const noexcept {
             return this->path() == b.path();
         }
 
@@ -102,11 +102,11 @@ namespace ool::fs {
         // Create new file
         directory& new_file(const sfs::path& file_path) {
             if (sfs::exists(file_path))
-                throw std::runtime_error("ool::fs::directory::new_file(): Given path already existed.");
+                throw std::runtime_error("asl::fs::directory::new_file(): Given path already existed.");
 
             std::ofstream newer(file_path.string());
             if (!newer.is_open())
-                throw std::runtime_error("ool::fs::directory::new_file(): Failed to create file.");
+                throw std::runtime_error("asl::fs::directory::new_file(): Failed to create file.");
                 
             children_.emplace_back(file_path);
             return *this;
@@ -115,10 +115,10 @@ namespace ool::fs {
         // Create a new directory
         directory& new_directory(const sfs::path& dir_path) {
             if (sfs::exists(dir_path))
-                throw std::runtime_error("ool::fs::directory::new_directory(): Given path already existed.");
+                throw std::runtime_error("asl::fs::directory::new_directory(): Given path already existed.");
 
             if (!sfs::create_directory(dir_path))
-                throw std::runtime_error("ool::fs::directory::new_directory(): Failed to create directory.");
+                throw std::runtime_error("asl::fs::directory::new_directory(): Failed to create directory.");
 
             children_.emplace_back(dir_path);
             return *this;
@@ -128,15 +128,15 @@ namespace ool::fs {
         // @warning Destructive. Aggressive.
         directory& remove_child(const sfs::path& path) {
             if (!sfs::exists(path))
-                throw std::runtime_error("ool::fs::directory::remove_child(): Given path does not exist.");
+                throw std::runtime_error("asl::fs::directory::remove_child(): Given path does not exist.");
 
             const auto it = std::find(children_.begin(), children_.end(), path);
 
             if (it == children_.end())
-                throw std::runtime_error("ool::fs::directory::remove_child(): Given path doesn't seem to exist in internal list (might be a bug).");
+                throw std::runtime_error("asl::fs::directory::remove_child(): Given path doesn't seem to exist in internal list (might be a bug).");
 
             if (!sfs::remove_all(path))
-                throw std::runtime_error("ool::fs::directory::remove_child(): Failed to remove child.");
+                throw std::runtime_error("asl::fs::directory::remove_child(): Failed to remove child.");
 
             children_.erase(it);
         }

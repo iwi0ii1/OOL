@@ -15,7 +15,7 @@ The file you will see every objects inherit from.
 #ifndef TYPES_OBJECT_HPP
 #define TYPES_OBJECT_HPP
 
-inline namespace ool {
+inline namespace asl {
     namespace types {
 
         // Type inherited by all objects from this library

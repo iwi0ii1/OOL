@@ -3,7 +3,7 @@
 #include "./object.hpp"
 #include <cstdint>
 
-namespace ool::base {
+namespace asl::base {
     // Contract for stream-based objects
     // @note Implement `read` and `write`
     class stream : public object {

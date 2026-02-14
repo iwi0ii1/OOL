@@ -2,7 +2,7 @@
 
 #include "./object.hpp"
 
-namespace ool::base {
+namespace asl::base {
     // Exception
     class exception final : public object {
 

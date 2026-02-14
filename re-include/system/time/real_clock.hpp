@@ -2,9 +2,9 @@
 
 #include "../../base/object.hpp"
 
-namespace ool::system::time {
+namespace asl::system::time {
     // Real clock
-    class real_clock final : base::object {
+    class real_clock final : public base::object {
     public:
         // TODO: Real clock
     };

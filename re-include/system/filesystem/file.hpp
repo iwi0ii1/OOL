@@ -2,9 +2,9 @@
 
 #include "../../base/object.hpp"
 
-namespace ool::system::filesystem {
+namespace asl::system::filesystem {
     // File
-    class file final : base::object {
+    class file final : public base::object {
     public:
         // TODO: File.
     };

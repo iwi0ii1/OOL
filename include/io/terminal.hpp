@@ -20,7 +20,7 @@
 
 #endif
 
-namespace ool::io {
+namespace asl::io {
 
     #pragma region Enums
     // Just a way to express your intent.
@@ -135,7 +135,7 @@ namespace ool::io {
         // @param texts The texts to write.
         // @param stream The stream to write to (default: output, uh-oh: no input stream)
         terminal& write(const std::string_view texts, const stream_ stream = out) {
-            if (stream == in) throw std::runtime_error("ool::io::terminal::write(): Cannot write to input stream.");
+            if (stream == in) throw std::runtime_error("asl::io::terminal::write(): Cannot write to input stream.");
             fwrite(texts.data(), sizeof(char), texts.size(), stream == out ? _out : _err);
             return *this;
         }
@@ -145,7 +145,7 @@ namespace ool::io {
         // Flush output / error
         // @param stream The stream to flush (default: output stream, uh-oh: no input stream)
         terminal& flush(const stream_ stream = out) {
-            if (stream == in) throw std::runtime_error("ool::io::terminal::flush(): Cannot flush an input stream.\nUse `ool::io::terminal::discard_pending_input()` instead.");
+            if (stream == in) throw std::runtime_error("asl::io::terminal::flush(): Cannot flush an input stream.\nUse `asl::io::terminal::discard_pending_input()` instead.");
             fflush(stream == out ? _out : _err);
             return *this;
         }
@@ -371,13 +371,13 @@ namespace ool::io {
             #ifdef __unix__
             winsize w;
             if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w))
-                throw std::runtime_error("ool::io::terminal::get_winsize(): ioctl failed");
+                throw std::runtime_error("asl::io::terminal::get_winsize(): ioctl failed");
                 
             return { w.ws_col, w.ws_row };
             #elif _WIN32
             CONSOLE_SCREEN_BUFFER_INFO csbi;
             if (!GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi))
-                throw std::runtime_error("ool::io::terminal::get_winsize(): GetConsoleScreenBufferInfo failed");
+                throw std::runtime_error("asl::io::terminal::get_winsize(): GetConsoleScreenBufferInfo failed");
 
             int cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
             int rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
@@ -395,7 +395,7 @@ namespace ool::io {
             w.ws_row = rows;
 
             if (ioctl(STDOUT_FILENO, TIOCSWINSZ, &w) == -1)
-                throw std::runtime_error("ool::io::terminal::set_winsize(): ioctl failed");
+                throw std::runtime_error("asl::io::terminal::set_winsize(): ioctl failed");
 
             #elif _WIN32
             HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -404,7 +404,7 @@ namespace ool::io {
             size.X = cols;
             size.Y = rows;
             if (SetConsoleScreenBufferSize(hOut, size))
-                throw std::runtime_error("ool::io::terminal::set_winsize(): SetConsoleScreenBufferSize failed");
+                throw std::runtime_error("asl::io::terminal::set_winsize(): SetConsoleScreenBufferSize failed");
 
             #endif
                 

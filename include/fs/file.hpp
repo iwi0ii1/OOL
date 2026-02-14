@@ -7,7 +7,7 @@
 #include <string>
 #include <string_view>
 
-namespace ool::fs {
+namespace asl::fs {
         
     namespace sfs = std::filesystem; // Alias for std::filesystem
 
@@ -27,7 +27,7 @@ namespace ool::fs {
             const sfs::path p(name);
             if (!sfs::exists(p) || !sfs::is_regular_file(p)) {
                 std::ifstream that_file(p.string());
-                if (!that_file.is_open()) throw std::runtime_error("ool::fs::file::file(): failed to create file.");
+                if (!that_file.is_open()) throw std::runtime_error("asl::fs::file::file(): failed to create file.");
             }
         }
 
@@ -38,7 +38,7 @@ namespace ool::fs {
         ~file() = default;
 
 
-        bool operator==(const file& b) const noexcept {
+        basl operator==(const file& b) const noexcept {
             return this->path() == b.path();
         }
 

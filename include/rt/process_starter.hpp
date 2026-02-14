@@ -11,7 +11,7 @@
 #include <sys/wait.h>
 #endif
 
-namespace ool::rt {
+namespace asl::rt {
     
     // Spawn a new process
     class process_starter final : private types::object {
