@@ -4,10 +4,10 @@
 #include <cstring>
 
 namespace asl::base {
-    // Methods for storage-based objects.
-    // @note Use inherited methods to perform memory management.
+    // Base class for raw memory and used memory management.
+    // @note Provides allocation, resizing, etc.
     class storage : public base::object {
-    private:
+    public:
         size_t size_ = 0;
         size_t capacity_ = 0;
         void* memory_ = nullptr;
@@ -44,10 +44,11 @@ namespace asl::base {
                 ::operator delete(memory_);
             }
             memory_ = new_mem;
+            capacity_ = new_capacity;
         }
         
         // Reallocate memory.
-        void resize(const size_t new_size) {
+        void resize(const size_t new_size = size_) {
             void* new_mem = ::operator new(new_size);
 
             // Copy memory into new memory.
@@ -56,11 +57,6 @@ namespace asl::base {
                 ::operator delete(memory_);
             }
             memory_ = new_mem;
-        }
-        
-        // Shrink memory.
-        void shrink_to_fit() {
-            void* new_mem = ::operator new(size_);
-        }
-    };
+            capacity = new_size;
+       }
 }
