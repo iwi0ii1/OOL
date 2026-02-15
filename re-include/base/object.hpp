@@ -10,6 +10,9 @@ Implicitly though other base classes or directly.
 #include <stdexcept>
 
 namespace asl::base {
+    // Pointer concept
+    template<typename T> concept a_pointer = std::is_pointer_v<T>;
+
     // Where all objects inherit from.
     // Implicitly though other base classes or directly.
     class object {
