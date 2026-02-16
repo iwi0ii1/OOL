@@ -7,89 +7,65 @@
 namespace asl::base {
     // Base class for raw memory and used memory management.
     // @note Provides allocation, resizing, etc.
-    template<a_pointer _memory_type>
+    // @param _memory_type A regular value.
+    template<a_regular_value _memory_type>
     class storage : public base::object {
     private:
         _memory_type* memory_ = nullptr;
 
     protected:
-        size_t slot_ = 0;
-        size_t unused_slot_ = 0;
-
-        // Only moves trivial / non-trivial memory to a specific destination.
-        // @warning Already freed old memory.
-        void move_memory(_memory_type* _dest) const noexcept {
-            if constexpr (std::is_trivial_v<_memory_type>)
-                std::memmove(_dest, memory_, unused_slot_);
-
-            else if constexpr (std::is_move_constructible_v<_memory_type>)
-                std::uninitialized_move_n(memory_, unused_slot_, _dest);
-
-            else if constexpr (std::is_copy_constructible_v<_memory_type>)
-                std::uninitialized_copy_n(memory_, unused_slot_, _dest);
-
-            else
-                static_assert(false, "Non-trivial type doesn't have copyable or movable constructor...");
-
-            std::destroy_n(memory_, unused_slot_);
-            ::operator delete(memory_);
-        }
+        size_t slots_ = 0;
+        size_t used_slots_ = 0;
 
     public:
-        // Get unused slots / size.
+
+        #pragma region Setup
+
+        storage() = default;
+
+        storage(const size_t add_slots) {
+            reserve(add_slots);
+        }
+
+        ~storage() {
+            if (memory_ != nullptr) {
+                std::destroy_n(memory_, used_slots_);
+                ::operator delete(memory_);
+            }
+        }
+        
+
+
+
+
+
+
+        #pragma endregion
+
+
+
+        #pragma region Check
+
+        // Get used slots / size.
         constexpr size_t size() const noexcept {
-            return unused_slot_;
+            return used_slots_;
         }
 
         // Check if empty slots and size
         constexpr bool empty() const noexcept {
-            return slot_ == 0 && unused_slot_ == 0;
+            return slots_ == 0 && used_slots_ == 0;
         }
 
         // Get total slots
         constexpr size_t slot() const noexcept {
-            return slot_;
+            return slots_;
         }
 
         // Get total raw bytes allocated
         constexpr size_t total_byte() const noexcept {
-            return slot_ * sizeof(_memory_type);
+            return slots_ * sizeof(_memory_type);
         }
 
-        // Reserve more slots
-        void reserve(const size_t add_slots) {
-            const size_t latest_total_bytes = (slot_ + add_slots) * sizeof(_memory_type);
-            
-            _memory_type* new_temporary_memory = ::operator new(latest_total_bytes);
-
-            move_memory(new_temporary_memory);
-
-            memory_ = new_temporary_memory;
-            slot_ = latest_total_bytes / sizeof(_memory_type);
-        }
-
-        // Set specific amount of slots
-        // @note Default to the total used slots (size)
-        void resize(const size_t this_slots) {
-            _memory_type* new_temporary_memory = ::operator new(this_slots * sizeof(_memory_type));
-
-            move_memory(new_temporary_memory);
-
-            memory_ = new_temporary_memory;
-            slot_ = this_slots;
-        }
-
-        // Cancel extra reserved slots
-        void cancel_extra_slots() {
-            _memory_type* new_temporary_memory = ::operator new(unused_slot_ * sizeof(_memory_type));
-
-            move_memory(new_temporary_memory);
-
-            memory_ = new_temporary_memory;
-            slot_ = this_slots;
-        }
-
-        
         // Get raw memory
         const _memory_type* raw_memory() const noexcept {
             return memory_;
@@ -97,7 +73,60 @@ namespace asl::base {
         
         // Check if slots are unexpectedly lesser than unused slots.
         bool inaccurate() const noexcept {
-            return slot_ < unused_slot_;
+            return slots_ < used_slots_;
         }
+
+        #pragma endregion
+
+
+
+
+        #pragma region Modifiers
+
+        // Re-allocate by specific number of slots (slots will automatically be changed)
+        // @note `Trim if less, extra slots if more` than used slots.
+        void reallocate(const size_t slots_number) {
+            _memory_type* new_memory = static_cast<_memory_type*>(
+                ::operator new(slots_number * sizeof(_memory_type))
+            );
+
+            // This is smart (🗿)
+            // - Transfers either amount of used slots or asked slots.
+            const size_t elements_to_transfer = std::min(used_slots_, slots_number);
+
+            if constexpr (std::is_trivial_v<_memory_type>)
+                std::memmove(new_memory, memory_, elements_to_transfer * sizeof(_memory_type));
+            else if constexpr (std::is_move_constructible_v<_memory_type>)
+                std::uninitialized_move_n(memory_, elements_to_transfer, new_memory);
+            else if constexpr (std::is_copy_constructible_v<_memory_type>)
+                std::uninitialized_copy_n(memory_, elements_to_transfer, new_memory);
+            else
+                static_assert(false, "Type must be move / copy constructible!");
+            
+            std::destroy_n(memory_, elements_to_transfer);
+            ::operator delete(memory_);
+
+            memory_ = new_memory;
+            slots_ = slots_number;
+            used_slots_ = elements_to_transfer;
+        }
+
+        // Reserve more slots
+        void reserve(const size_t add_slots) {
+            reallocate(slots_ + add_slots);
+        }
+
+        // Set specific amount of slots
+        // @note Default to the total used slots (size)
+        void resize(const size_t this_slots) {
+            reallocate(this_slots);
+        }
+
+        // Cancel extra reserved slots
+        void cancel_extra_slot() {
+            reallcoate(used_slots_);
+        }
+
+        #pragma endregion
     };
 }
