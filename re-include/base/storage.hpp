@@ -7,44 +7,22 @@
 namespace asl::base {
     // Base class for raw memory and used memory management.
     // @note Provides allocation, resizing, etc.
-    // @param _memory_type A regular value.
+    // @param _memory_type A regular value (no pointer)
     template<a_regular_value _memory_type>
     class storage : public base::object {
     private:
-        _memory_type* memory_ = nullptr;
+        storage() = default; // Disallow construction.
 
     protected:
         size_t slots_ = 0;
         size_t used_slots_ = 0;
+        _memory_type* memory_ = nullptr;
 
     public:
 
-        #pragma region Setup
-
-        storage() = default;
-
-        storage(const size_t add_slots) {
-            reserve(add_slots);
-        }
-
-        ~storage() {
-            if (memory_ != nullptr) {
-                std::destroy_n(memory_, used_slots_);
-                ::operator delete(memory_);
-            }
-        }
-        
 
 
-
-
-
-
-        #pragma endregion
-
-
-
-        #pragma region Check
+        #pragma region Detail
 
         // Get used slots / size.
         constexpr size_t size() const noexcept {
@@ -67,7 +45,7 @@ namespace asl::base {
         }
 
         // Get raw memory
-        const _memory_type* raw_memory() const noexcept {
+        const _memory_type* data() const noexcept {
             return memory_;
         }
         
@@ -124,7 +102,7 @@ namespace asl::base {
 
         // Cancel extra reserved slots
         void cancel_extra_slot() {
-            reallcoate(used_slots_);
+            reallocate(used_slots_);
         }
 
         #pragma endregion
