@@ -10,13 +10,12 @@ namespace asl::base {
     // @param _memory_type A regular value (no pointer)
     template<a_regular_value _memory_type>
     class storage : public base::object {
-    private:
-        storage() = default; // Disallow construction.
-
     protected:
         size_t slots_ = 0;
         size_t used_slots_ = 0;
         _memory_type* memory_ = nullptr;
+
+        storage() = default; // Constructible by derived
 
     public:
 
@@ -87,6 +86,16 @@ namespace asl::base {
             memory_ = new_memory;
             slots_ = slots_number;
             used_slots_ = elements_to_transfer;
+        }
+
+        // Free memory and assign `nullptr`.
+        // @note Slots will automatically be changed
+        void free() {
+            std::destroy_n(memory_, used_slots_);
+            ::operator delete(memory_);
+            memory_ = nullptr;
+            slots_ = 0;
+            used_slots_ = 0;
         }
 
         // Reserve more slots

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../base/iterators.hpp"
+#include "../base/array_iterator.hpp"
 #include "../base/storage.hpp"
 #include <algorithm>
 
@@ -9,15 +9,21 @@ namespace asl::containers {
     // String
     // @param _char_type Char type (e.g., char, char16_t, wchar_t)
     template<base::char_like _char_type>
-    requires !std::is_const_v<_char_type>
-    class basic_string final : public base::iterator_common<_char_type*, basic_string<_char_type>>, base::storage<_char_type> {
+    requires (!std::is_const_v<_char_type>)
+    class basic_string final : public base::array_iterator<_char_type> {
     public:
         #pragma region Setup
+        using iterator_t = base::array_iterator<_char_type>::iterator_t;
+        using const_iterator_t = base::array_iterator<_char_type>::const_iterator_t;
+        using value_type = _char_type;
+
+
         // @param c_str A string literal
         basic_string(const _char_type* c_str) noexcept {
             const auto n = std::char_traits<_char_type>::length(c_str);
-            resize(n);
-            std::copy_n(c_str, n, memory_);
+            this->reallocate(n + 1);
+            std::copy_n(c_str, n, this->memory_);
+            this->memory_[n] = _char_type{}; // Null-termination
         }
 
         basic_string(basic_string&&) noexcept = default;
@@ -26,6 +32,19 @@ namespace asl::containers {
         basic_string(const basic_string& other) {
             this->reallocate(other.used_slots_);
             std::copy_n(other.memory_, other.used_slots_, this->memory_);
+        }
+
+        // @param start Start iterator (.begin)
+        // @param end End iterator (.end)
+        basic_string(iterator_t start, iterator_t end) {
+            const size_t count = end - start;
+            this->reallocate(count);
+            std::copy(start, end, this->memory_);
+            this->used_slots_ = count;
+        }
+
+        basic_string(_char_type one_char, size_t count = 1) {
+
         }
 
         #pragma endregion
