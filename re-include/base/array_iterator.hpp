@@ -13,49 +13,59 @@ namespace asl::base {
     protected:
         array_iterator() = default; // Constructible by derived
 
+        using __strg = storage<_underlying_type>;
+        using __strg::memory_;
+        using __strg::used_slots_;
+
     public:
+
         using iterator_t = _underlying_type*; // Iterator ptr
         using const_iterator_t = const _underlying_type* ; // Iterator const ptr
 
         // First element
         inline iterator_t begin() const noexcept {
-            return this->memory_;
+            return memory_;
         }
 
         // Memory after the last element (do not dereference!)
         inline iterator_t end() const noexcept {
-            return this->memory_ + this->used_slots_;
+            return memory_ + used_slots_;
         }
 
+        [[deprecated("Comming soon...")]]
         // Last element (dereferenceable)
         inline iterator_t rbegin() const noexcept {
-            return this->memory_ + this->used_slots_ - 1;
+            return memory_ + used_slots_ - 1;
         }
 
+        [[deprecated("Comming soon...")]]
         // Memory before the first element (do not dereference!)
         inline iterator_t rend() const noexcept {
-            return this->memory_ - 1;
+            return memory_ - 1;
         }
+
 
         
         // First element
         inline const_iterator_t cbegin() const noexcept {
-            return this->memory_;
+            return memory_;
         }
 
         // Memory after the last element (do not dereference!)
         inline const_iterator_t cend() const noexcept {
-            return this->memory_ + this->used_slots_;
+            return memory_ + used_slots_;
         }
 
+        [[deprecated("Comming soon...")]]
         // Last element (dereferenceable)
         inline const_iterator_t crbegin() const noexcept {
-            return this->memory_ + this->used_slots_ - 1;
+            return memory_ + used_slots_ - 1;
         }
 
+        [[deprecated("Comming soon...")]]
         // Memory before the first element (do not dereference!)
         inline const_iterator_t crend() const noexcept {
-            return this->memory_ - 1;
+            return memory_ - 1;
         }
     };
 }

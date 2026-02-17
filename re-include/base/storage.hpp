@@ -7,9 +7,10 @@
 namespace asl::base {
     // Base class for raw memory and used memory management.
     // @note Provides allocation, resizing, etc.
-    // @param _memory_type A regular value (no pointer)
+    // @param _memory_type Give me regular type, I wrap it in a ptr (don't gimme ptr or ref)
     template<a_regular_value _memory_type>
-    class storage : public base::object {
+    requires storage_compatible<_memory_type>
+    class storage : protected base::object {
     protected:
         size_t slots_ = 0;
         size_t used_slots_ = 0;
@@ -17,9 +18,12 @@ namespace asl::base {
 
         storage() = default; // Constructible by derived
 
+        // Just frees memory so containers don't need to free.
+        ~storage() {
+            this->free();
+        }
+
     public:
-
-
 
         #pragma region Detail
 
@@ -44,13 +48,45 @@ namespace asl::base {
         }
 
         // Get raw memory
-        const _memory_type* data() const noexcept {
+        constexpr _memory_type* data() noexcept {
             return memory_;
         }
         
-        // Check if slots are unexpectedly lesser than unused slots.
-        bool inaccurate() const noexcept {
-            return slots_ < used_slots_;
+        // Access element (doesn't count '\0')
+        // @note Might UB 😨
+        // @note Use `.at()` if prefer throwing
+        constexpr _memory_type& operator[](const size_t index) noexcept {
+            return memory_[index];
+        }
+
+        // Access element (doesn't count '\0')
+        // @note Maybe no segfault, thx to throwing
+        inline _memory_type& at(const size_t index) {
+            if (index >= used_slots_)
+                throw std::out_of_range("Index out of range.\nSize: " + std::to_string(used_slots_) + "\nGiven index: " + std::to_string(index));
+            return memory_[index];
+        }
+
+        // First element
+        // @note Do not dereference if memory empty
+        constexpr _memory_type& front() noexcept {
+            return memory_[0];
+        }
+
+        // Last element
+        // @note Do not dereference if memory empty
+        constexpr _memory_type& back() noexcept {
+            return memory_[used_slots_ - 1];
+        }
+
+        // The name already tells you what this does, lol
+        constexpr bool starts_with(_memory_type __m) noexcept {
+            return used_slots_ != 0 && memory_[0] == __m;
+        }
+
+        // The name already tells you what this does, lol
+        constexpr bool ends_with(_memory_type __m) noexcept {
+            return used_slots_ != 0 && memory_[used_slots_ - 1] == __m;
         }
 
         #pragma endregion
@@ -62,7 +98,8 @@ namespace asl::base {
 
         // Re-allocate by specific number of slots (slots will automatically be changed)
         // @note `Trim if less, extra slots if more` than used slots.
-        void reallocate(const size_t slots_number) {
+        // @warning When used for allocation, make sure to change `used_slots_` manually.
+        inline void reallocate(const size_t slots_number) {
             _memory_type* new_memory = static_cast<_memory_type*>(
                 ::operator new(slots_number * sizeof(_memory_type))
             );
@@ -77,8 +114,6 @@ namespace asl::base {
                 std::uninitialized_move_n(memory_, elements_to_transfer, new_memory);
             else if constexpr (std::is_copy_constructible_v<_memory_type>)
                 std::uninitialized_copy_n(memory_, elements_to_transfer, new_memory);
-            else
-                static_assert(false, "Type must be move / copy constructible!");
             
             std::destroy_n(memory_, elements_to_transfer);
             ::operator delete(memory_);
@@ -90,7 +125,7 @@ namespace asl::base {
 
         // Free memory and assign `nullptr`.
         // @note Slots will automatically be changed
-        void free() {
+        inline void free() {
             std::destroy_n(memory_, used_slots_);
             ::operator delete(memory_);
             memory_ = nullptr;
@@ -99,18 +134,18 @@ namespace asl::base {
         }
 
         // Reserve more slots
-        void reserve(const size_t add_slots) {
+        inline void reserve(const size_t add_slots) {
             reallocate(slots_ + add_slots);
         }
 
         // Set specific amount of slots
         // @note Default to the total used slots (size)
-        void resize(const size_t this_slots) {
+        inline void resize(const size_t this_slots) {
             reallocate(this_slots);
         }
 
         // Cancel extra reserved slots
-        void cancel_extra_slot() {
+        inline void cancel_extra_slot() {
             reallocate(used_slots_);
         }
 

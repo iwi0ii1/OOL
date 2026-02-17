@@ -26,6 +26,12 @@ namespace asl::base {
             std::same_as<T, char8_t> ||
             std::same_as<T, char16_t> ||
             std::same_as<T, char32_t>;
+
+        // Is Move-constructible, Copy-constructible, and Destructible
+        template<typename T> concept storage_compatible = 
+            std::is_move_constructible_v<T> &&
+            std::is_copy_constructible_v<T> &&
+            std::is_destructible_v<T>;
     }
 
     // Where all objects inherit from.
