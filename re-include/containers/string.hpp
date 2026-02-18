@@ -25,7 +25,7 @@ namespace asl::containers {
         using iterator = __internal::linear_iterator<__internal::direction::forward, _char_type*>;
         using const_iterator = __internal::linear_iterator<__internal::direction::forward, const _char_type*>;
         using reversed_iterator = __internal::linear_iterator<__internal::direction::reversed, _char_type*>;
-        using const_reversed_iterator = __internal::linear_iterator<__internal::direction::reversed, _char_type*>;
+        using const_reversed_iterator = __internal::linear_iterator<__internal::direction::reversed, const _char_type*>;
 
 
 
@@ -96,7 +96,7 @@ namespace asl::containers {
 
 
 
-        // Construct by forward iterator (interesting)
+        // Construct by forward iterator
         // @param start Start iterator (.begin)
         // @param end End iterator (.end)
         basic_string(iterator start, iterator end) {
@@ -109,8 +109,8 @@ namespace asl::containers {
         // Construct by reverse iterator
         // @param start Start iterator (.begin)
         // @param end End iterator (.end)
-        basic_string(reverse_iterator start, reverse_iterator end) {
-            const size_t count = start - end; // Not end - start bc `operator-()` doesn't get reversed
+        basic_string(reversed_iterator start, reversed_iterator end) {
+            const size_t count = end - start;
             reallocate(count);
             std::copy(start, end, memory_);
             used_slots_ = count;
@@ -154,20 +154,20 @@ namespace asl::containers {
 
 
 
-        reverse_iterator rbegin() const noexcept {
-            return reverse_iterator(memory_ + used_slots_ - 1);
+        reversed_iterator rbegin() const noexcept {
+            return reversed_iterator(memory_ + used_slots_ - 1);
         }
 
-        reverse_iterator rend() const noexcept {
-            return reverse_iterator(memory_ - 1);
+        reversed_iterator rend() const noexcept {
+            return reversed_iterator(memory_ - 1);
         }
 
-        const_reverse_iterator crbegin() const noexcept {
-            return const_reverse_iterator(memory_ + used_slots_ - 1);
+        const_reversed_iterator crbegin() const noexcept {
+            return const_reversed_iterator(memory_ + used_slots_ - 1);
         }
 
-        const_reverse_iterator crend() const noexcept {
-            return const_reverse_iterator(memory_ - 1);
+        const_reversed_iterator crend() const noexcept {
+            return const_reversed_iterator(memory_ - 1);
         }
 
         #pragma endregion
