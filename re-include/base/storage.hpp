@@ -3,6 +3,7 @@
 #include "./object.hpp"
 #include <cstring>
 #include <memory>
+#include <iostream>
 
 namespace asl::base {
     // Base class for raw memory and used memory management.
@@ -26,6 +27,8 @@ namespace asl::base {
     public:
 
         #pragma region Detail
+
+        using memory_type = decltype(memory_);
 
         // Get used slots / size.
         constexpr size_t size() const noexcept {
@@ -101,7 +104,7 @@ namespace asl::base {
         // @warning When used for allocation, make sure to change `used_slots_` manually.
         inline void reallocate(const size_t slots_number) {
             _memory_type* new_memory = static_cast<_memory_type*>(
-                ::operator new(slots_number * sizeof(_memory_type))
+                ::operator new(slots_number * sizeof(_memory_type)) // Here causes the problem
             );
 
             // This is smart (🗿)

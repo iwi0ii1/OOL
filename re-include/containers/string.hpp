@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../base/array_iterator.hpp"
+#include "../__internal/linear_iterator.hpp"
 #include "../base/storage.hpp"
 #include <algorithm>
 
@@ -10,28 +10,41 @@ namespace asl::containers {
     // @param _char_type Char type (e.g., char, char16_t, wchar_t)
     template<base::char_like _char_type>
     requires (!std::is_const_v<_char_type>)
-    class basic_string final : public base::array_iterator<_char_type> {
-    protected:
+    class basic_string final : public base::storage<_char_type> {
+    private:
         using base::storage<_char_type>::memory_;
         using base::storage<_char_type>::used_slots_;
         using base::storage<_char_type>::reallocate;
 
+        using __l_type = basic_string<_char_type>;
+        using __l_rtype = __l_type&;
+
     public:
         #pragma region Setup
 
-        using iterator = base::array_iterator<_char_type>::iterator_t;
-        using const_iterator = base::array_iterator<_char_type>::const_iterator_t;
-        using value_type = _char_type;
+        using iterator = __internal::linear_iterator<__internal::direction::forward, _char_type*>;
+        using const_iterator = __internal::linear_iterator<__internal::direction::forward, const _char_type*>;
+        using reversed_iterator = __internal::linear_iterator<__internal::direction::reversed, _char_type*>;
+        using const_reversed_iterator = __internal::linear_iterator<__internal::direction::reversed, _char_type*>;
 
-        basic_string() noexcept {
+
+
+
+
+        basic_string() {
             reallocate(1);
             std::copy_n("", 1, memory_);
             used_slots_ = 1;
             memory_[0] = _char_type{}; // Null-termination
         }
 
+
+
+
+
+
         // @param c_str A string literal
-        basic_string(const _char_type* c_str) noexcept {
+        basic_string(const _char_type* c_str) {
             const auto n = std::char_traits<_char_type>::length(c_str);
             reallocate(n + 1);
             std::copy_n(c_str, n, memory_);
@@ -39,8 +52,31 @@ namespace asl::containers {
             memory_[n] = _char_type{};
         }
 
+        // You know what this does if you know `std::string::operator=()`
+        basic_string<_char_type>& operator=(const _char_type* c_str) {
+            const auto n = std::char_traits<_char_type>::length(c_str);
+            reallocate(n + 1);
+            std::copy_n(c_str, n, memory_);
+            used_slots_ = n;
+            memory_[n] = _char_type{};
+            return *this;
+        }
+
+
+
+
+
+
         // Move ctor.
-        basic_string(basic_string&&) noexcept = default;
+        basic_string(basic_string&&) = default;
+
+        // Move assign
+        basic_string<_char_type>& operator=(basic_string&&) = default;
+
+
+
+
+
 
         // Construct by copy.
         // @param other Copy is expensive... but whatever
@@ -49,8 +85,18 @@ namespace asl::containers {
             std::copy_n(other.memory_, other.used_slots_, this->memory_);
         }
 
+        // You know what this does if you know `std::string::operator=()`
+        basic_string<_char_type>& operator=(const basic_string<_char_type>& other) {
+            reallocate(other.used_slots_);
+            std::copy_n(other.memory_, other.used_slots_, this->memory_);
+            return *this;
+        }
 
-        // Construct by iterator (interesting)
+
+
+
+
+        // Construct by forward iterator (interesting)
         // @param start Start iterator (.begin)
         // @param end End iterator (.end)
         basic_string(iterator start, iterator end) {
@@ -59,6 +105,20 @@ namespace asl::containers {
             std::copy(start, end, memory_);
             used_slots_ = count;
         }
+
+        // Construct by reverse iterator
+        // @param start Start iterator (.begin)
+        // @param end End iterator (.end)
+        basic_string(reverse_iterator start, reverse_iterator end) {
+            const size_t count = start - end; // Not end - start bc `operator-()` doesn't get reversed
+            reallocate(count);
+            std::copy(start, end, memory_);
+            used_slots_ = count;
+        }
+
+
+
+
 
         // @param one_char The char to spawn in this string
         // @param count How many times to spawn it
@@ -71,17 +131,44 @@ namespace asl::containers {
             memory_[count] = _char_type{};
         }
 
+        #pragma endregion
 
 
-        // You know what this does if you know `std::string::operator=()`
-        basic_string<_char_type> operator=(const _char_type* c_str) noexcept {
-            // This one
+        #pragma region Iterators
+
+        iterator begin() const noexcept {
+            return iterator(memory_);
         }
 
-        basic_string<_char_type> operator=(const )
+        iterator end() const noexcept {
+            return iterator(memory_ + used_slots_);
+        }
 
-        basic_string<_char_type>
+        const_iterator cbegin() const noexcept {
+            return const_iterator(memory_);
+        }
 
+        const_iterator cend() const noexcept {
+            return const_iterator(memory_ + used_slots_);
+        }
+
+
+
+        reverse_iterator rbegin() const noexcept {
+            return reverse_iterator(memory_ + used_slots_ - 1);
+        }
+
+        reverse_iterator rend() const noexcept {
+            return reverse_iterator(memory_ - 1);
+        }
+
+        const_reverse_iterator crbegin() const noexcept {
+            return const_reverse_iterator(memory_ + used_slots_ - 1);
+        }
+
+        const_reverse_iterator crend() const noexcept {
+            return const_reverse_iterator(memory_ - 1);
+        }
 
         #pragma endregion
 
