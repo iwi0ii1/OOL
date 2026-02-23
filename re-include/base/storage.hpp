@@ -97,7 +97,7 @@ namespace asl::base {
 
 
 
-        #pragma region Modifiers
+        #pragma region Mutators
 
         // Re-allocate by specific number of slots (slots will automatically be changed)
         // @note `Trim if less, extra slots if more` than used slots.
@@ -126,8 +126,13 @@ namespace asl::base {
             used_slots_ = elements_to_transfer;
         }
 
+
+
+
+
+
         // Free memory and assign `nullptr`.
-        // @note Slots will automatically be changed
+        // @note Clears slots
         inline void free() {
             std::destroy_n(memory_, used_slots_);
             ::operator delete(memory_);
@@ -135,6 +140,18 @@ namespace asl::base {
             slots_ = 0;
             used_slots_ = 0;
         }
+
+        // Clears elements
+        // @note Does not clear slots (only calls destructors)
+        inline void clear() noexcept {
+            std::destroy_n(memory_, used_slots_);
+            used_slots_ = 0;
+        }
+
+
+
+
+
 
         // Reserve more slots
         inline void reserve(const size_t add_slots) {
@@ -150,6 +167,34 @@ namespace asl::base {
         // Cancel extra reserved slots
         inline void cancel_extra_slot() {
             reallocate(used_slots_);
+        }
+
+
+
+
+
+
+        // Add a new element to the storage
+        // @param elem The element to add
+        inline void push_back(const _memory_type& elem) {
+            if (used_slots_ >= slots_ || slots_ == 0)
+                reserve(1);
+
+            memory_[used_slots_++] = elem; // Compiler place each bytes safely
+        }
+
+        // Remove the last element (guarded, returns false if storage already empty)
+        // @param rep Repetition of removing the last element
+        // @note Doesn't remove slots (only calls destructor)
+        inline bool pop_back(const size_t rep = 1) noexcept {
+            if (rep > used_slots_)
+                return false;
+
+            for (size_t i = 0; i < rep && ; i++) {
+                back().~_memory_type();
+                --used_slots_;
+            }
+            return true;
         }
 
         #pragma endregion

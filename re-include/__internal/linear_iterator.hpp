@@ -96,5 +96,9 @@ namespace asl::__internal {
         constexpr std::remove_pointer_t<_pointer>& operator*() const noexcept {
             return *base_ptr;
         }
+
+        constexpr _pointer operator->() const noexcept {
+            return base_ptr;
+        }
     };
 }

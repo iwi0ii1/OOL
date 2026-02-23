@@ -5,5 +5,7 @@ using namespace asl::containers;
 
 int main() {
     string hello("hello");
-    std::cout << string(hello.rbegin(), hello.rend()).data();
+    hello.push_back('H');
+    std::cout << std::string(hello.begin(), hello.end()) << std::endl;
+    return 0;
 }

@@ -80,7 +80,7 @@ namespace asl::containers {
 
         // Construct by copy.
         // @param other Copy is expensive... but whatever
-        basic_string(const basic_string& other) {
+        basic_string(__l_rtype other) {
             reallocate(other.used_slots_);
             std::copy_n(other.memory_, other.used_slots_, this->memory_);
         }
@@ -96,25 +96,17 @@ namespace asl::containers {
 
 
 
-        // Construct by forward iterator
+        // Construct by iterator
         // @param start Start iterator (.begin)
         // @param end End iterator (.end)
-        basic_string(iterator start, iterator end) {
+        template<typename it_t = iterator>
+        basic_string(it_t start, it_t end) {
             const size_t count = end - start;
             reallocate(count);
             std::copy(start, end, memory_);
             used_slots_ = count;
         }
 
-        // Construct by reverse iterator
-        // @param start Start iterator (.begin)
-        // @param end End iterator (.end)
-        basic_string(reversed_iterator start, reversed_iterator end) {
-            const size_t count = end - start;
-            reallocate(count);
-            std::copy(start, end, memory_);
-            used_slots_ = count;
-        }
 
 
 
@@ -175,8 +167,9 @@ namespace asl::containers {
 
 
 
-        #pragma region Methods
+        #pragma region Mutators
 
+        
 
         #pragma endregion
     };
