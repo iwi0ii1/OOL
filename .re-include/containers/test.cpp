@@ -1,5 +1,6 @@
 #include "./string.hpp"
 #include <iostream>
+#include <string>
 
 using namespace asl::containers;
 
