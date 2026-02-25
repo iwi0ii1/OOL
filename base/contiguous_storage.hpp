@@ -149,6 +149,8 @@ namespace asl::base {
             return &data_[start];
         }
 
+        inline iterator push_back
+
         inline void erase(const size_t index, const bool left_shift = true) {
             if (index >= used_slots_)
                     throw std::out_of_range("Index out of range...");
