@@ -168,7 +168,7 @@ namespace asl::containers {
         #pragma endregion
 
 
-        #pragma region Comparison
+        #pragma region Check
 
         // Compare strings
         inline bool operator==(__l_crtype other) const noexcept {
@@ -183,47 +183,35 @@ namespace asl::containers {
             return true;
         }
 
+
+
+        // Access specific character
+        inline _char_type& operator[](const size_t index) const noexcept {
+            return memory_[index];
+        }
+
+
+        // Access specific character (will throw)
+        inline _char_type& at(const size_t index) const {
+            if (index >= used_slots_)
+                throw std::out_of_range("Index out of range: " + std::to_string(index));
+
+            return memory_[index];
+        }
+
         #pragma endregion
 
 
         #pragma region Mutators
 
-        // Insert at a specific position
-        inline iterator insert(iterator position, _char_type other) {
-            if (used_slots_ >= slots_ || slots_ == 0)
-                reserve(1);
-
-            const size_t index = position - begin();
-
-            // Shift memory rightward
-            for (size_t i = used_slots_; i > index; --i) {
-                memory_[i] = memory_[i - 1];
-            }
-
-            memory_[index] = other;
-            ++used_slots_;
-
-            return iterator(memory_ + index);
+        inline iterator push_back(_char_type new_ch) {
+            __l_fn_insert_at(used_slots_ - 1, new_ch);
         }
 
-
-
-
-
-
-
-
-        // Erase a specific positions
-        // @note Doesn't reduce slots
-        inline void erase(iterator first, iterator last) {
-            std::destroy(first, last);
-
-            // Left shift
-            std::memmove(first.base_ptr, last.base_ptr, (end().base_ptr - last.base_ptr) * sizeof(_char_type));
-
-            used_slots_ -= last - first;
+        inline void pop_back(size_t n) {
+            for (; n > 0; --i)
+                __l_fn_erase_at(used_slots_ - 1);
         }
-
 
         #pragma endregion
     };
