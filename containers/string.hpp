@@ -183,13 +183,6 @@ namespace asl::containers {
             return true;
         }
 
-
-
-        // Not so fast...
-        inline bool operator!=(__l_crtype other) const noexcept {
-            return !operator==(other);
-        }
-
         #pragma endregion
 
 
