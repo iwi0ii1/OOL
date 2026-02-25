@@ -46,13 +46,14 @@ namespace asl::base {
         }
 
         /** @internal **/
-        // Remove element at specific position
+        // Remove element at specific position (will left shift all elements)
         // @note Doesn't reduce slots
-        inline void __l_fn_erase_at(const size_t index) {
+        inline void __l_fn_erase_at(const size_t index, const bool no_left_shift = false) {
             if (index >= used_slots_)
                     throw std::out_of_range("Index out of range...");
 
-            std::move(memory_ + index + 1, memory_ + used_slots_, memory_ + index);
+            if (!no_left_shift)
+                std::move(memory_ + index + 1, memory_ + used_slots_, memory_ + index);
 
             used_slots_ -= 1;
             if constexpr (!std::is_trivially_destructible_v<_memory_type>)
