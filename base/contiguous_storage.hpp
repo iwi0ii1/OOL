@@ -31,8 +31,8 @@ namespace asl::base {
     public:
         using iterator = T*;
         using const_iterator = const T*;
-        using reversed_iterator = std::reverse_iterator<T*>;
-        using const_reversed_iterator = std::reverse_iterator<const T*>;
+        using reversed_iterator = std::reverse_iterator<iterator>;
+        using const_reversed_iterator = std::reverse_iterator<const_iterator>;
 
 
         #pragma region Details
@@ -94,6 +94,14 @@ namespace asl::base {
             return data_ + used_slots_;
         }
 
+        inline const_iterator begin() const noexcept { // Overload for range-based for loop
+            return data_;
+        }
+
+        inline const_iterator end() const noexcept { // Overload for range-based for loop
+            return data_ + used_slots_;
+        }
+
         inline const_iterator cbegin() const noexcept {
             return data_;
         }
@@ -103,19 +111,19 @@ namespace asl::base {
         }
 
         inline reversed_iterator rbegin() noexcept {
-            return reversed_iterator(data_);
+            return reversed_iterator(end());
         }
 
-        inline reverse_iterator rend() noexcept {
-            return reversed_iterator(data_ + used_slots_);
+        inline reversed_iterator rend() noexcept {
+            return reversed_iterator(begin());
         }
 
         inline const_reversed_iterator crbegin() const noexcept {
-            return const_reversed_iterator(data_);
+            return const_reversed_iterator(cend());
         }
 
         inline const_reversed_iterator crend() const noexcept {
-            return const_reversed_iterator(data_ + used_slots_);
+            return const_reversed_iterator(cbegin());
         }
         #pragma endregion
 
@@ -148,6 +156,8 @@ namespace asl::base {
         // @param val What to insert
         // @note Will allocate only 1 more slot if insufficient (no extra growth)
         inline iterator insert(iterator pos, const T& val) {
+            // Don't `const` pos here bc need to update it after reallocation and std::move_backward doesn't take const
+
             const size_t offset = pos - this->begin();
 
             if (used_slots_ >= slots_ || slots_ == 0) {
@@ -165,8 +175,20 @@ namespace asl::base {
         }
 
         // Insert an element to the back
-        inline iterator push_back(const T& val) {
-            return insert(this->end(), val);
+        // @param val Value to add
+        // @param rep Repetition
+        inline iterator push_back(const T& val, size_t rep = 1) {
+            if (rep < 1)
+                throw std::invalid_argument("asl::base::contiguous_storage<T>::push_back(...): Second parameter `rep` cannot be less than 1.");
+
+            if (used_slots_ + rep > slots_)
+                reserve(rep);
+
+            const auto first_iterator = insert(this->end(), val);
+            for (; rep - 1 > 1; --rep)
+                insert(this->end(), val);
+
+            return first_iterator;
         }
 
         // Insert a range of elements
@@ -174,15 +196,17 @@ namespace asl::base {
         // @param first Start range of elements
         // @param last End range of elements
         // @note Will allocate more memory if insufficient (no extra growth)
-        iterator insert(iterator pos, iterator first, iterator last);
+        iterator insert(iterator pos, const_iterator first, const_iterator last);
 
         // Remove elements
         // @param first The first element to remove
         // @param last Until the last element to remove
         // @note Doesn't reduce slots
-        inline void erase(iterator first, iterator last = first + 1) {
+        inline void erase(iterator first, iterator last) {
+            // `first` / `last` non-const -> const doesn't make sense as erase will need to modify
+
             if (first == last)
-                throw std::invalid_argument("asl::base::contiguous_storage<T>::erase(...): `first` iterator the same as `last` iterator.")
+                throw std::invalid_argument("asl::base::contiguous_storage<T>::erase(...): `first` iterator the same as `last` iterator.");
 
             // Bring the "chosen ones" to overwrite starting from `first` (third parameter)
             // Returns the start of the ghosts (old objects whom dtors aren't called yet)
@@ -195,7 +219,7 @@ namespace asl::base {
         // Remove the last element
         // @param rep Removal repetition
         inline void pop_back(const size_t rep = 1) {
-            erase(this->end() - rep, this->end())
+            erase(this->end() - rep, this->end());
         }
 
         // Clear elements
@@ -242,9 +266,9 @@ namespace asl::base {
     }
 
 
-    template<typename T>
+    template<a_regular_value T>
     requires storage_compatible<T>
-    constiguous_storage<T>::iterator constiguous_storage<T>::insert(iterator pos, iterator first, iterator last) {
+    contiguous_storage<T>::iterator contiguous_storage<T>::insert(iterator pos, const_iterator first, const_iterator last) {
         const size_t offset = pos - this->begin();
         const size_t range_diff = last - first;
 
@@ -258,9 +282,10 @@ namespace asl::base {
 
         auto new_pos = std::move_backward(pos, this->end(), this->end() + range_diff);
 
+        // first / last are const -> both const / non-const will work
         std::uninitialized_copy(first, last, pos);
 
         used_slots_ += range_diff;
-        return new_pos;
+        return pos;
     }
 }

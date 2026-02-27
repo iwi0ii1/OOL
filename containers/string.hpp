@@ -23,9 +23,9 @@ namespace asl::containers {
 
         #pragma region Setup
         basic_string() {
-            __l_fn_realloc(1);
-            used_slots_ = 1;
-            data_[0] = _char_type{}; // Null-termination
+            this->__l_fn_realloc(1);
+            this->used_slots_ = 1;
+            this->data_[0] = _char_type{}; // Null-termination
         }
 
 
@@ -36,19 +36,19 @@ namespace asl::containers {
         // @param c_str A string literal
         basic_string(const _char_type* c_str) {
             const auto n = std::char_traits<_char_type>::length(c_str);
-            __l_fn_realloc(n + 1);
-            std::copy_n(c_str, n, data_);
-            used_slots_ = n;
-            data_[n] = _char_type{};
+            this->__l_fn_realloc(n + 1);
+            std::copy_n(c_str, n, this->data_);
+            this->used_slots_ = n;
+            this->data_[n] = _char_type{};
         }
 
         // You know what this does if you know `std::string::operator=()`
         basic_string<_char_type>& operator=(const _char_type* c_str) {
             const auto n = std::char_traits<_char_type>::length(c_str);
-            __l_fn_realloc(n + 1);
-            std::copy_n(c_str, n, data_);
-            used_slots_ = n;
-            data_[n] = _char_type{};
+            this->__l_fn_realloc(n + 1);
+            std::copy_n(c_str, n, this->data_);
+            this->used_slots_ = n;
+            this->data_[n] = _char_type{};
             return *this;
         }
 
@@ -70,14 +70,14 @@ namespace asl::containers {
 
         // Construct by copy.
         // @param other Copy is expensive... but whatever
-        basic_string(__l_rtype other) {
-            __l_fn_realloc(other.used_slots_);
+        basic_string(__l_self_rtype other) {
+            this->__l_fn_realloc(other.used_slots_);
             std::copy_n(other.data_, other.used_slots_, this->data_);
         }
 
         // You know what this does if you know `std::string::operator=()`
         basic_string<_char_type>& operator=(const basic_string<_char_type>& other) {
-            __l_fn_realloc(other.used_slots_);
+            this->__l_fn_realloc(other.used_slots_);
             std::copy_n(other.data_, other.used_slots_, this->data_);
             return *this;
         }
@@ -89,12 +89,11 @@ namespace asl::containers {
         // Construct by iterator
         // @param start Start iterator (.begin)
         // @param end End iterator (.end)
-        template<typename it_t = iterator>
-        basic_string(it_t start, it_t end) {
+        basic_string(const_iterator start, const_iterator end) {
             const size_t count = end - start;
-            __l_fn_realloc(count);
-            std::copy(start, end, data_);
-            used_slots_ = count;
+            this->__l_fn_realloc(count);
+            std::copy(start, end, this->data_);
+            this->used_slots_ = count;
         }
 
 
@@ -105,12 +104,12 @@ namespace asl::containers {
         // @param one_char The char to spawn in this string
         // @param count How many times to spawn it
         basic_string(_char_type one_char, size_t count = 1) {
-            __l_fn_realloc(count);
+            this->__l_fn_realloc(count);
             for (size_t i = 0; i < count; i++)
-                data_[i] = one_char;
+                this->data_[i] = one_char;
             
-            used_slots_ = count;
-            data_[count] = _char_type{};
+            this->used_slots_ = count;
+            this->data_[count] = _char_type{};
         }
         #pragma endregion
 
@@ -121,12 +120,56 @@ namespace asl::containers {
             if (this->used_slots_ != other.used_slots_ )
                 return false;
 
-            for (size_t i = 0; i < used_slots_; ++i) {
+            for (size_t i = 0; i < this->used_slots_; ++i) {
                 if (this->memory_[i] != other.memory_[i])
                     return false;
             }
 
             return true;
+        }
+        #pragma endregion
+
+
+
+
+        #pragma region Mutators
+        // Append / Concatenate string
+        inline iterator append(__l_self_crtype other) {
+            return this->insert(this->end(), other.begin(), other.end());
+        }
+
+
+
+
+
+        // Append / Concatenate string
+        inline __l_self_rtype operator+=(__l_self_crtype other) {
+            append(other);
+            return *this;
+        }
+
+        // Append character
+        inline __l_self_rtype operator+=(const T ch) {
+            push_back(ch);
+            return *this;
+        }
+
+
+
+
+
+        // Append / Concatenate string (temporarily)
+        inline __l_self_type operator+(__l_self_crtype other) {
+            __l_self_type tmp(this->data_);
+            tmp.append(other);
+            return __l_self_type(tmp.begin(), tmp.end());
+        }
+
+        // Append character (temporarily)
+        inline __l_self_type operator+(const T ch) {
+            __l_self_type tmp(this->data_);
+            tmp.push_back(ch);
+            return __l_self_type(tmp.begin(), tmp.end());
         }
         #pragma endregion
     };

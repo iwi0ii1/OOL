@@ -1,12 +1,14 @@
 #include "./string.hpp"
-#include <iostream>
-#include <string>
 
 using namespace asl::containers;
 
+void printer(const string& str) {
+    for (auto each : str)
+        putchar(each);
+}
+
 int main() {
     string hello{"hello"};
-    hello.erase(hello.begin(), hello.begin() + 4);
-    std::cout << std::string(hello.begin().base_ptr, hello.end().base_ptr) << std::endl;
+    printer(hello + "huh");
     return 0;
 }
