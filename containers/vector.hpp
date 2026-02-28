@@ -1,31 +1,25 @@
 #pragma once
 
-#include "../base/storage.hpp"
+#include "../base/contiguous_storage.hpp"
 
 namespace asl::containers {
     // Vector / Dynamic array
     template<typename T>
-    class vector final : public base::storage<T> {
+    class vector final : public base::contiguous_storage<T> {
     private:
-        using base::storage<_char_type>::memory_;
-        using base::storage<_char_type>::used_slots_;
-        using base::storage<_char_type>::reallocate;
-
-        using __l_type = vector<T>;
-        using __l_rtype = __l_type&;
-        using __l_crtype = const __l_type&;
+        using __l_base_type = base::contiguous_storage<T>;
+        using __l_self_type = vector<T>;
+        using __l_self_rtype = __l_type&;
+        using __l_self_crtype = const __l_type&;
 
     public:
+        using typename __l_base_type::iterator;
+        using typename __l_base_type::const_iterator;
+        using typename __l_base_type::reversed_iterator;
+        using typename __l_base_type::const_reversed_iterator;
+
+
         #pragma region Setup
-    
-        using iterator = __internal::linear_iterator<__internal::direction::forward, T*>;
-        using const_iterator = __internal::linear_iterator<__internal::direction::forward, const T*>;
-        using reversed_iterator = __internal::linear_iterator<__internal::direction::reversed, T*>;
-        using const_reversed_iterator = __internal::linear_iterator<__internal::direction::reversed, const T*>;
-
-
-
-
         // Default constructor
         constexpr vector() noexcept {}
 
@@ -52,18 +46,17 @@ namespace asl::containers {
 
 
 
-        // Construct by copy
-        // @param other Constructing a copy is expensive...
-        vector(__l_rtype other) {
-            reallocate(other.used_slots_);
-            std::copy_n(other.memory_, other.used_slots_, this->memory_);
+        // Construct
+        vector(__l_self_crtype other) {
+            this->__l_fn_realloc(other.used_slots_);
+            std::copy_n(other.data_, other.used_slots_, this->data_);
         }
 
 
         // You know what this does if you know `std::vector<T>::operator=()`
-        __l_rtype operator=(__l_rtype other) {
-            reallocate(other.used_slots_);
-            std::copy_n(other.memory_, other.used_slots_, this->memory_);
+        __l_rtype operator=(__l_self_rtype other) {
+            this->__l_fn_realloc(other.used_slots_);
+            std::copy_n(other.data_, other.used_slots_, this->data_);
             return *this;
         }
 

@@ -68,15 +68,14 @@ namespace asl::containers {
 
 
 
-        // Construct by copy.
-        // @param other Copy is expensive... but whatever
-        basic_string(__l_self_rtype other) {
+        // Construct.
+        basic_string(__l_self_crtype other) {
             this->__l_fn_realloc(other.used_slots_);
             std::copy_n(other.data_, other.used_slots_, this->data_);
         }
 
         // You know what this does if you know `std::string::operator=()`
-        basic_string<_char_type>& operator=(const basic_string<_char_type>& other) {
+        __l_self_rtype operator=(__l_self_crtype other) {
             this->__l_fn_realloc(other.used_slots_);
             std::copy_n(other.data_, other.used_slots_, this->data_);
             return *this;
@@ -149,8 +148,8 @@ namespace asl::containers {
         }
 
         // Append character
-        inline __l_self_rtype operator+=(const T ch) {
-            push_back(ch);
+        inline __l_self_rtype operator+=(const _char_type ch) {
+            this->push_back(ch);
             return *this;
         }
 
@@ -162,14 +161,14 @@ namespace asl::containers {
         inline __l_self_type operator+(__l_self_crtype other) {
             __l_self_type tmp(this->data_);
             tmp.append(other);
-            return __l_self_type(tmp.begin(), tmp.end());
+            return tmp;
         }
 
         // Append character (temporarily)
-        inline __l_self_type operator+(const T ch) {
+        inline __l_self_type operator+(const _char_type ch) {
             __l_self_type tmp(this->data_);
             tmp.push_back(ch);
-            return __l_self_type(tmp.begin(), tmp.end());
+            return tmp;
         }
         #pragma endregion
     };

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./object.hpp"
+#include "./custom_concepts.hpp"
 #include <cstring>
 #include <memory>
 #include <iterator>
@@ -10,7 +10,7 @@ namespace asl::base {
     // @note Provided common methods for contiguous containers
     template<a_regular_value T>
     requires storage_compatible<T>
-    class contiguous_storage : protected object {
+    class contiguous_storage {
     protected:
         size_t used_slots_ = 0;
         size_t slots_ = 0;
@@ -202,16 +202,17 @@ namespace asl::base {
         // @param first The first element to remove
         // @param last Until the last element to remove
         // @note Doesn't reduce slots
-        inline void erase(iterator first, iterator last) {
-            // `first` / `last` non-const -> const doesn't make sense as erase will need to modify
-
+        inline void erase(const_iterator first, const_iterator last) {
             if (first == last)
                 throw std::invalid_argument("asl::base::contiguous_storage<T>::erase(...): `first` iterator the same as `last` iterator.");
+            
+            const size_t idx_first = first - this->begin();
+            const size_t idx_last = last - this->end();
 
             // Bring the "chosen ones" to overwrite starting from `first` (third parameter)
             // Returns the start of the ghosts (old objects whom dtors aren't called yet)
-            auto ghosts_pos = std::move(last, this->end(), first);
-            std::destroy(ghosts_pos, this->end()); // Runs dtor of ghosts
+            auto ghosts_pos = std::move(begin() + idx_last, end(), begin() + idx_first);
+            std::destroy(ghosts_pos, end()); // Runs dtor of ghosts
 
             used_slots_ -= last - first;
         }
@@ -269,21 +270,24 @@ namespace asl::base {
     template<a_regular_value T>
     requires storage_compatible<T>
     contiguous_storage<T>::iterator contiguous_storage<T>::insert(iterator pos, const_iterator first, const_iterator last) {
+        const size_t idx_first = first - begin();
+        const size_t idx_last = last - begin();
+
         const size_t offset = pos - this->begin();
-        const size_t range_diff = last - first;
+        const size_t range_diff = idx_last - idx_first;
 
         if (used_slots_ + range_diff > slots_ || slots_ == 0) {
             reserve(range_diff);
-            pos = this->begin() + offset;
+            pos = begin() + offset;
         }
 
         for (size_t i = 0; i < range_diff; i++)
-            new (this->end() + i) T;
+            new (end() + i) T;
 
-        auto new_pos = std::move_backward(pos, this->end(), this->end() + range_diff);
+        std::move_backward(pos, end(), end() + range_diff);
 
         // first / last are const -> both const / non-const will work
-        std::uninitialized_copy(first, last, pos);
+        std::uninitialized_copy(begin() + idx_first, begin() + idx_last, pos);
 
         used_slots_ += range_diff;
         return pos;

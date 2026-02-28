@@ -1,6 +1,5 @@
 /*
-Where all objects inherit from.
-Implicitly though other base classes or directly.
+Just custom concepts
 */
 
 #pragma once
@@ -33,22 +32,4 @@ namespace asl::base {
             std::is_copy_constructible_v<T> &&
             std::is_destructible_v<T>;
     }
-
-    // Where all objects inherit from.
-    // Implicitly though other base classes or directly.
-    class object {
-    public:
-        object() = default;
-
-        // Just destructor, nothing lol.
-        virtual ~object() = default;
-
-        // Downcast to derived.
-        // @note Throws if downcast invalid.
-        template<typename _derived>
-        _derived& as() const {
-            static_assert(!std::is_pointer_v<_derived> && !std::is_reference_v<_derived>, "_derived cannot be a pointer or a reference.");
-            return dynamic_cast<_derived&>(*this);
-        }
-    };
 }
