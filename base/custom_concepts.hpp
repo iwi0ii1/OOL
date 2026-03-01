@@ -31,5 +31,8 @@ namespace asl::base {
             std::is_move_constructible_v<T> &&
             std::is_copy_constructible_v<T> &&
             std::is_destructible_v<T>;
+
+        // Is numeric / arithmetic
+        template<typename T> concept numeric = std::is_arithmetic_v<T>;
     }
 }

@@ -43,7 +43,7 @@ namespace asl::containers {
         }
 
         // You know what this does if you know `std::string::operator=()`
-        basic_string<_char_type>& operator=(const _char_type* c_str) {
+        __l_self_rtype operator=(const _char_type* c_str) {
             const auto n = std::char_traits<_char_type>::length(c_str);
             this->__l_fn_realloc(n + 1);
             std::copy_n(c_str, n, this->data_);
@@ -100,13 +100,12 @@ namespace asl::containers {
 
 
 
+        // Fill in with `one_char`
         // @param one_char The char to spawn in this string
         // @param count How many times to spawn it
         basic_string(_char_type one_char, size_t count = 1) {
-            this->__l_fn_realloc(count);
-            for (size_t i = 0; i < count; i++)
-                this->data_[i] = one_char;
-            
+            this->__l_fn_realloc(count + 1);
+            std::uninitialized_fill_n(this->data_, count, one_char);            
             this->used_slots_ = count;
             this->data_[count] = _char_type{};
         }
@@ -169,6 +168,42 @@ namespace asl::containers {
             __l_self_type tmp(this->data_);
             tmp.push_back(ch);
             return tmp;
+        }
+
+
+
+
+
+        // Lowercase string by a range (ASCII only)
+        inline __l_self_rtype to_lower(const_iterator first, const_iterator last) noexcept {
+            size_t idx_first = first - this->begin();
+            const size_t idx_last = last - this->begin();
+
+            for (; idx_first < idx_last; ++idx_first) {
+                _char_type& ch = this->data_[idx_first]; // The same as *(this->begin() + idx_first)
+                if (ch >= _char_type('A') && ch <= _char_type('Z'))
+                    ch += _char_type('a' - 'A');
+            }
+            return *this;
+        }
+
+        // Uppercase string by a range
+        inline __l_self_rtype to_upper(const_iterator first, const_iterator last) noexcept {
+            size_t idx_first = first - this->begin();
+            const size_t idx_last = last - this->begin();
+
+            for (; idx_first < idx_last; ++idx_first) {
+                _char_type& ch = this->data_[idx_first]; // The same as *(this->begin() + idx_first)
+                if (ch >= _char_type('a') && ch <= _char_type('z'))
+                    ch -= _char_type('a' - 'A');
+            }
+            return *this;
+        }
+
+        // Kinda like std::stoi, which returns a number by checking the string
+        template<base::numeric T>
+        inline T to_number(const_iterator first, const_iterator last) {
+            // TODO: Interpret string, and return a number (FPN and Integral)
         }
         #pragma endregion
     };

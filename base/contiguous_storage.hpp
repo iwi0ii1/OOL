@@ -1,7 +1,7 @@
 #pragma once
 
 #include "./custom_concepts.hpp"
-#include <cstring>
+//#include "../__internal/_memory.hpp"
 #include <memory>
 #include <iterator>
 
@@ -49,6 +49,10 @@ namespace asl::base {
         }
 
         inline T* data() noexcept {
+            return data_;
+        }
+
+        inline const T* c_data() const noexcept {
             return data_;
         }
 
@@ -155,23 +159,19 @@ namespace asl::base {
         // @param pos Where to insert
         // @param val What to insert
         // @note Will allocate only 1 more slot if insufficient (no extra growth)
-        inline iterator insert(iterator pos, const T& val) {
-            // Don't `const` pos here bc need to update it after reallocation and std::move_backward doesn't take const
-
-            const size_t offset = pos - this->begin();
-
-            if (used_slots_ >= slots_ || slots_ == 0) {
+        inline iterator insert(const_iterator pos, const T& val) {
+            if (used_slots_ >= slots_ || slots_ == 0)
                 reserve(1);
-                pos = this->begin() + offset;
-            }
 
-            // std::move_backward() dereferences, so we construct decoys
-            new (this->end()) T;
-            auto new_pos = std::move_backward(pos, this->end(), this->end() + 1);
-            new (pos) T{val};
+            iterator* insert_pos = begin() + (pos - begin());
+
+            if (insert_pos != end()) {
+                std::move(insert_pos, end(), insert_pos + 1);
+            }
+            new (insert_pos) T(val);
             
             used_slots_ += 1;
-            return new_pos;
+            return insert_pos;
         }
 
         // Insert an element to the back
@@ -184,9 +184,9 @@ namespace asl::base {
             if (used_slots_ + rep > slots_)
                 reserve(rep);
 
-            const auto first_iterator = insert(this->end(), val);
+            const auto first_iterator = insert(end(), val);
             for (; rep - 1 > 1; --rep)
-                insert(this->end(), val);
+                insert(end(), val);
 
             return first_iterator;
         }
@@ -206,8 +206,8 @@ namespace asl::base {
             if (first == last)
                 throw std::invalid_argument("asl::base::contiguous_storage<T>::erase(...): `first` iterator the same as `last` iterator.");
             
-            const size_t idx_first = first - this->begin();
-            const size_t idx_last = last - this->end();
+            const size_t idx_first = first - begin();
+            const size_t idx_last = last - end();
 
             // Bring the "chosen ones" to overwrite starting from `first` (third parameter)
             // Returns the start of the ghosts (old objects whom dtors aren't called yet)
@@ -220,7 +220,7 @@ namespace asl::base {
         // Remove the last element
         // @param rep Removal repetition
         inline void pop_back(const size_t rep = 1) {
-            erase(this->end() - rep, this->end());
+            erase(end() - rep, end());
         }
 
         // Clear elements
@@ -241,24 +241,24 @@ namespace asl::base {
     template<a_regular_value T>
     requires storage_compatible<T>
     void contiguous_storage<T>::__l_fn_realloc(const size_t slots_number) {
-        T* new_memory = static_cast<T*>(
-            ::operator new(slots_number * sizeof(T)) // Here causes the problem
-        );
+        // Does nothing if asked is the same as the current
+        if (slots_number == slots_)
+            return;
 
         // This is smart (🗿)
         // - Transfers either amount of used slots or asked slots.
         const size_t elements_to_transfer = std::min(used_slots_, slots_number);
 
-        if constexpr (std::is_trivial_v<T>)
-            std::memmove(new_memory, data_, elements_to_transfer * sizeof(T));
-        else if constexpr (std::is_move_constructible_v<T>)
-            std::uninitialized_move_n(data_, elements_to_transfer, new_memory);
-        else if constexpr (std::is_copy_constructible_v<T>)
-            std::uninitialized_copy_n(data_, elements_to_transfer, new_memory);            
+        T* new_memory = static_cast<T*>(
+            ::operator new(slots_number * sizeof(T)) // Here causes the problem
+        );
 
-        if constexpr (std::is_trivial_v<T>)
-            std::destroy_n(data_, elements_to_transfer);
-        
+        if constexpr (std::is_move_constructible_v<T>) {
+            std::uninitialized_move_n(data_, elements_to_transfer, new_memory);
+        } else {
+            std::uninitialized_copy_n(data_, elements_to_transfer, new_memory);
+            std::destroy_n(data_, elements_to_transfer); // Only call dtors if copied.
+        }
         ::operator delete(data_);
 
         data_ = new_memory;
@@ -273,7 +273,7 @@ namespace asl::base {
         const size_t idx_first = first - begin();
         const size_t idx_last = last - begin();
 
-        const size_t offset = pos - this->begin();
+        const size_t offset = pos - begin();
         const size_t range_diff = idx_last - idx_first;
 
         if (used_slots_ + range_diff > slots_ || slots_ == 0) {
