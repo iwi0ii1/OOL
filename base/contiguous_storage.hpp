@@ -164,11 +164,12 @@ namespace asl::base {
                 reserve(1);
 
             iterator* insert_pos = begin() + (pos - begin());
+            iterator* end_pos = end() - 1
+            
+            new (end()) T(end_pos); // Construct last element at end()
+            for (; end_pos != insert_pos; --end_pos)
+                *end_pos = *(end_pos - 1);
 
-            if (insert_pos != end()) {
-                std::move(insert_pos, end(), insert_pos + 1);
-            }
-            new (insert_pos) T(val);
             
             used_slots_ += 1;
             return insert_pos;
